@@ -64,6 +64,16 @@ This *confirmed the thesis* and pinpointed L2 (0.11) as the battleground. **Next
 
 ---
 
+## Data-integrity audit (and why we don't exploit the L3 leak)
+
+We audited the NIfTI headers for non-content shortcuts (the SETI/PetFinder class of leak). Finding:
+
+- **dataset3 (L3) has a *perfect* header leak**: each query's NIfTI **affine / qoffset uniquely identifies its true target** (20/20 distinct, 20/20 exact-1 match). Matching L3 by affine alone → **MRR ≈ 1.0, no content, no training**. Cause: the challenge resamples each L3 target *into its query's physical space*, so the target inherits the query's affine. It's **intrinsic** (would hold on the private split too).
+- **dataset1 (L1)**: query & target share the affine, but it's a *common grid* shared by the whole gallery → not discriminative (no exploit).
+- **dataset2 (L2)**: one affine across the whole gallery → no leak.
+
+**Decision: we deliberately do NOT exploit it.** Our pipeline resamples to 96³ (discarding the original affine), so it is content-honest by construction. Rationale: (1) the challenge is judged on **methodology** by Inria/MPI researchers who explicitly warned against shortcuts; (2) **`entire`** runs cheating-detection on the codebase; (3) a metadata match doesn't *solve* the cross-modal retrieval problem; (4) identifying-and-avoiding the shortcut is a stronger, shake-up-proof research story than gaming it. We **report** the leak as a data-integrity finding (audit: `leak_audit.py`).
+
 ## Where we stand
 - Infra built + validated; data on box 3; **MIND oracle baseline `L1=0.99 / L2=0.11 / L3=0.37`** (W&B `mind-oracle-v1`).
 - Running: rigid-registration A/B on L2. Then: contrastive encoder, per-level fusion, bijection assignment, submission.

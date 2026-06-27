@@ -30,7 +30,9 @@ class Encoder(nn.Module):
         # and avoids a BatchNorm kernel-compile failure on gfx942/ROCm. ResNet's fc = our head.
         kw = dict(spatial_dims=3, n_input_channels=1, num_classes=d)
         try:
-            self.net = ctor(norm="instance", **kw)
+            # affine=True so the norm layers have weight/bias (ResNet init sets them; InstanceNorm
+            # defaults to affine=False -> weight is None -> init crashes).
+            self.net = ctor(norm=("instance", {"affine": True}), **kw)
         except TypeError:
             self.net = ctor(**kw)
         self.kind = "resnet"

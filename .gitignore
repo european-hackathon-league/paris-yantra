@@ -1,0 +1,34 @@
+# ---- secrets (NEVER commit — CLAUDE.md §9, KICKOFF §5) ----
+kaggle.json
+*.key
+.env
+.env.*
+secrets.*
+**/credentials*
+
+# ---- data (large NIfTI volumes live on the MI300X, not in git) ----
+data/
+**/images/
+*.nii
+*.nii.gz
+
+# ---- caches / preprocessed tensors ----
+.cache/
+**/.cache/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# ---- model checkpoints / outputs ----
+outputs/
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+
+# ---- misc / OS ----
+*:Zone.Identifier
+.DS_Store
+*.log
+.venv/
+venv/

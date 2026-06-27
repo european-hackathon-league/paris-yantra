@@ -13,7 +13,8 @@ import time
 from pathlib import Path
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
+from monai.data import DataLoader   # subclass of torch DataLoader with correct per-worker RNG seeding
 
 from config import CFG
 import preprocess
@@ -117,7 +118,8 @@ def main():
     tf = augment.train_transforms(CFG)
     ds = PairDataset([(p["query_id"], p["target_id"]) for p in train_meta], id2vol, tf)
     dl = DataLoader(ds, batch_size=args.batch_size, shuffle=True, drop_last=True,
-                    num_workers=args.num_workers)
+                    num_workers=args.num_workers, persistent_workers=(args.num_workers > 0),
+                    pin_memory=(dev.type == "cuda"))
 
     from encoder import Encoder
     enc = Encoder(CFG, backbone=args.backbone).to(dev)

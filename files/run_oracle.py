@@ -36,7 +36,11 @@ def main():
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--wandb-project", default="ehl-mri-retrieval", help="empty string disables W&B")
     ap.add_argument("--run-name", default="mind-oracle")
+    ap.add_argument("--align", choices=["none", "rigid"], default="none",
+                    help="rigid = register every volume to a canonical reference (tests finding 2)")
+    ap.add_argument("--levels", default="l1,l2,l3", help="comma-sep subset of l1,l2,l3")
     args = ap.parse_args()
+    levels = tuple(x.strip() for x in args.levels.split(",") if x.strip())
 
     CFG.data_root = Path(args.data_root)
     CFG.resolution = args.resolution
@@ -56,9 +60,13 @@ def main():
         })
     print(f"preprocessed {len(holdout)} pairs in {time.time() - t0:.1f}s")
 
+    # canonical reference for rigid alignment = an undistorted L1 query (the registered frame)
+    ref = holdout[0]["query"]
+    print(f"align={args.align}; levels={levels}")
+
     # per-level MRR with MIND (gallery descriptors precomputed once per level on GPU)
     results: dict = {}
-    for level in oracle.LEVELS:
+    for level in levels:
         t = time.time()
         try:
             qv, gv = oracle.build_level(holdout, level, CFG)   # CPU tensors (synth on CPU)
@@ -66,6 +74,11 @@ def main():
             print(f"  skip {level}: {type(e).__name__}: {e}")
             results[level] = None
             continue
+        if args.align == "rigid":
+            import register
+            qv = [register.register_to_ref(v, ref) for v in qv]
+            gv = [register.register_to_ref(v, ref) for v in gv]
+            print(f"    registered {len(qv)+len(gv)} vols ({time.time() - t:.1f}s so far)")
         qv = [v.to(dev) for v in qv]
         gv = [v.to(dev) for v in gv]
         D = mind.mind_score_matrix(qv, gv)                      # [Q,G], lower = more similar
@@ -73,7 +86,7 @@ def main():
         truth = {i: i for i in range(len(qv))}
         results[level] = metrics.mrr(rankings, truth)
         print(f"  {level}: MRR={results[level]:.4f}  ({time.time() - t:.1f}s)")
-    done = [results[l] for l in oracle.LEVELS if results.get(l) is not None]
+    done = [results[l] for l in levels if results.get(l) is not None]
     results["mean"] = sum(done) / len(done) if done else 0.0
     print("RESULT:", {k: (round(v, 4) if isinstance(v, float) else v) for k, v in results.items()})
 
@@ -82,7 +95,8 @@ def main():
             import wandb
             run = wandb.init(project=args.wandb_project, name=args.run_name,
                              config={"scorer": "mind", "resolution": args.resolution,
-                                     "n_holdout": args.n_holdout},
+                                     "n_holdout": args.n_holdout, "align": args.align,
+                                     "levels": ",".join(levels)},
                              settings=wandb.Settings(silent=True))
             wandb.log({f"oracle/{k}": v for k, v in results.items() if isinstance(v, float)})
             print("wandb:", run.get_url())

@@ -26,11 +26,11 @@ Training-free, deterministic cross-modal MRI retrieval: **register every brain t
 | **d3 honest** (co-location destroyed + content-registration) | **0.741** | ✅ `d3_strong` — earned by anatomy |
 | Teammate v31 (Sinkhorn, deformable d3) | 0.923 | ✅ |
 
-## Numbers — ORACLE-ONLY → being validated on Kaggle now ⏳
-| Claim | Oracle value | Validation |
+## Numbers — greedy/deployable now LB-VALIDATED ✅
+| Claim | LB number | Status |
 |---|---|---|
-| **Greedy (single-query, deployable) macro** | ~0.80 (d1 1.0 / d2 0.81 / d3 0.58) | **submitting a greedy full submission now** to confirm on real LB |
-| Hungarian − greedy gap (transductive boost) | +0.1–0.4 | confirmed by the greedy submission vs the 0.91 Hungarian one |
+| **Greedy (single-query, deployable) macro** | **0.725** | ✅ `full_greedy` (honest, d3 leak-destroyed) — the *real* deployable number (oracle's ~0.80 was optimistic) |
+| Hungarian − greedy gap (transductive boost) | **+0.205** | ✅ 0.930 (Hungarian) − 0.725 (greedy) — confirms the assignment is a real but *non-deployable* lift |
 
 ## The three pitch assets
 1. **The method** — SSC + content-registration + trim. Training-free, deterministic, auditable (FDA/CE-credible). Per-level map above.

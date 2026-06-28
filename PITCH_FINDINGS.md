@@ -21,7 +21,7 @@ Training-free, deterministic cross-modal MRI retrieval: **register every brain t
 |---|---|---|
 | Full submission, leak d3 | **1.000** | ✅ on board — *not selected* (it's the leak) |
 | Full submission, honest d3 (Hungarian) | **0.914 / 0.930** | ✅ `full_honest` / `full_honest_v2` |
-| **Honest, NO leak, single-seed, Hungarian** | **1.000** | ✅ `bbox_nocrop` — matches the leak's public score *legitimately* (public pool saturated) |
+| **Honest, NO leak, Hungarian (3 seeds)** | **~0.96** (0.938 / 0.953 / **1.000**) | ✅ `bbox_nocrop`+repro — *essentially matches the leak honestly*; the 1.0 is the lucky-seed tail, reliable honest ≈ 0.96 |
 | **d3 leak** (resize / co-location) | **1.000** | ✅ |
 | **d3 co-location BROKEN, no re-reg** | **0.259** | ✅ *the leak is worth 0.74 — proves the 1.0 is the grid* |
 | **d3 honest** (co-location destroyed + content-registration) | **0.741** | ✅ `d3_strong` — earned by anatomy |
@@ -42,4 +42,4 @@ Training-free, deterministic cross-modal MRI retrieval: **register every brain t
 - **Organizer ruling (Nico): bipartite (Hungarian) matching is *allowed* but "besides the point of the challenge" → report BOTH scores.** ✅ Done: **content / single-query 0.725** (the task itself) and **+ bipartite 0.930** (disclosed, not hidden). The leaderboard is saturated, so **judging now weights problem-understanding + how cool the approach is** — our leak-discovery, per-level map, and negative-results rigor are the differentiators.
 - **Public LB is 27% (40/40/20 pools)** → private will derate; the assignment boost shrinks on larger pools. Because every level is *earned*, the derate is graceful.
 - **Oracle is a proxy** — synthetic d3 resection is harsher than real, so some oracle numbers (e.g. optimal trim) don't transfer; we cross-check large claims on the real LB.
-- **Public LB is saturated** — leak *and* honest both hit 1.0, so public 1.0 is non-discriminative; the **private LB is the real test**. (We tested Wilfred's bbox-crop here → it *hurt* on the real LB, 1.0→0.764 → **not adopted**; and single-seed 1.0 > 4-seed fusion 0.930 → lock single-seed.)
+- **Public LB is compressed near the ceiling** — leak = a *reliable* 1.0; honest single-seed Hungarian = **0.96 ± 0.03 (0.938–1.0 over 3 seeds)** → we *essentially match the leak honestly*, but the exact 1.0 is seed-luck, not reliable. **Private LB is the real test.** (bbox-crop tested → *hurt* 1.0→0.764, not adopted; 4-seed fusion 0.930 is dragged but more stable.)
